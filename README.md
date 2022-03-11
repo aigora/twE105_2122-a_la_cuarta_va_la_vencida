@@ -1,11 +1,12 @@
 # [Título del trabajo]
 
-[Descripción breve del proyecto a realizar (2-3 frases).]
+Proyecto de juego de ajedrez en 2d en lenguaje c. 
 
 ## Integrantes del equipo
 
-[Nombres, apellidos, y usuario GitHub de los integrantes del equipo.]
-
+Joshua Guila Valderueda - Joshgv25
+Ruben Ruiz Martínez
+Oscar
 ## Objetivos del trabajo
 
-[Lista de los objetivos que se persiguen con el trabajo propuesto.]
+Crear un juego de ajedrez para dos jugadores. Si hay posibilidades, programar una IA para que el jugador pueda jugar contra una máquina. 
