@@ -6,6 +6,7 @@ Proyecto de juego de ajedrez en 2d en lenguaje c.
 
 Joshua Guila Valderueda - Joshgv25  
 Ruben Ruiz Martínez - xrubenruizx 
+
 Oscar Arrigo Rodríguez - oscararrigo
 
 ## Objetivos del trabajo
