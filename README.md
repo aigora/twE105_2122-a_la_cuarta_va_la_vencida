@@ -5,7 +5,7 @@ Proyecto de juego de ajedrez en 2d en lenguaje c.
 ## Integrantes del equipo
 
 Joshua Guila Valderueda - Joshgv25  
-Ruben Ruiz Martínez - xrubenruizx
+Ruben Ruiz Martínez - xrubenruizx\n
 Oscar Arrigo Rodríguez - oscararrigo
 
 ## Objetivos del trabajo
