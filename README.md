@@ -6,7 +6,8 @@ Proyecto de juego de ajedrez en 2d en lenguaje c.
 
 Joshua Guila Valderueda - Joshgv25  
 Ruben Ruiz Martínez  
-Oscar
+Oscar Arrigo Rodríguez - oscararrigo
+
 ## Objetivos del trabajo
 
 Crear un juego de ajedrez para dos jugadores. Si hay posibilidades, programar una IA para que el jugador pueda jugar contra una máquina. 
