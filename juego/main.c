@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
                 fgets(jugador2, N, stdin);
                 
                 do{
-                printf("ÀQue color sera %s? \n", jugador1);
+                printf("Ã€Que color sera %s? \n", jugador1);
                 printf("1. Blancas\n2. Negras\n");
                 scanf("%i", &color);
                 } while(color!= 1 && color!= 2);
@@ -46,7 +46,7 @@ int main(int argc, const char * argv[]) {
                 }
                 
                 do{
-                printf("ÀDesea jugar con limite de tiempo?\n");
+                printf("Ã€Desea jugar con limite de tiempo?\n");
                 printf("1. Si\n2. No\n");
                 scanf("%i", &opTime);
                 }while (opTime != 1 && opTime != 2);
@@ -61,10 +61,10 @@ int main(int argc, const char * argv[]) {
             case 2:
                 fflush(stdin);
                 printf("Ingrese el nombre del Jugador 1:\n");
-                fgets(jugador1, 20, stdin);
+                fgets(jugador1, N, stdin);
                 
                 do{
-                printf("ÀQue color sera %s? \n", jugador1);
+                printf("Que color sera %s? \n", jugador1);
                 printf("1. Blancas\n2. Negras\n");
                 scanf("%i", &color);
                 } while(color!= 1 && color!= 2);
@@ -75,7 +75,7 @@ int main(int argc, const char * argv[]) {
                     printf("De acuerdo, la maquina sera el color blanco\n");
                 }
                 do{
-                printf("ÀDesea jugar con limite de tiempo?\n");
+                printf("Desea jugar con limite de tiempo?\n");
                 printf("1. Si\n2. No\n");
                 scanf("%i", &opTime);
                 }while (opTime != 1 && opTime != 2);
