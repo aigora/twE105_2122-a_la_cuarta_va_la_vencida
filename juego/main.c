@@ -75,7 +75,7 @@ int main(int argc, const char * argv[]) {
                     printf("De acuerdo, la maquina sera el color blanco\n");
                 }
                 do{
-                printf("ÀDesea jugar con limite de tiempo?\n");
+                printf("Â¿Desea jugar con limite de tiempo?\n");
                 printf("1. Si\n2. No\n");
                 scanf("%i", &opTime);
                 }while (opTime != 1 && opTime != 2);
@@ -108,4 +108,6 @@ int main(int argc, const char * argv[]) {
     
     return 0;
 }
+
+
 
