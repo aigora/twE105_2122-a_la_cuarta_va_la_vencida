@@ -14,14 +14,22 @@
 #define REESCALADO_TEXTURA_PIEZA_X 10
 #define REESCALADO_TEXTURA_PIEZA_Y 8
 
+#define VACIO 0
+#define PEON 1
+#define CABALLO 2
+#define TORRE 3
+#define ALFIL 4
+#define DAMA 5
+#define REY 6
+
+#define COLOR_BLANCO 0
+#define COLOR_DORADO 1
+
 #define ESTADO_INICIO_PARTIDA 0
-#define ESTADO_JUGANDO 1
+#define ESTADO_EN_PARTIDA 1
 #define ESTADO_VICTORIA_JUGADOR_1 2
 #define ESTADO_VICTORIA_JUGADOR_2 3
 #define ESTADO_SALIR 4
-
-#define TURNO_JUGADOR_1 1
-#define TURNO_JUGADOR_2 2
 
 typedef struct
 {
@@ -32,24 +40,21 @@ typedef struct
 typedef struct
 {
     Vector2D pos;
-    char tipo;      //V(vacio), r(rey), d(dama), c(caballo), a(alfil), t(torre), p(peon) | minusculas->doradas, MAYUSCULAS->BLANCAS
+    int tipo;
     SDL_Texture* textura;
-    int en_movimiento;
 }Pieza;
 
 typedef struct
 {
     char nombre[20];
     int num_piezas;
-    Pieza piezas[N][N];
-    int moviendo_pieza;
-    int soltar_pieza;
+    Pieza piezas[PIEZAS_INICIALES];
 }Jugador;
 
 typedef struct
 {
     Vector2D pos;
-    Pieza pieza;
+    char pieza;
 } Casilla;
 
 typedef struct
@@ -57,7 +62,6 @@ typedef struct
     Vector2D pos;
     SDL_Texture* textura;
     Casilla casillas[N][N];
-    Vector2D tamano_casillas;
 } Tablero;
 
 typedef struct //Ventana
@@ -76,4 +80,11 @@ typedef struct
 } Partida;
 
 void humanoVShumano(char nombre_1[], char nombre_2[]);
-
+void humanoVSmaquina(Jugador* jugador_1);
+void iniciarSDL(App* app);
+void prepararEscena(App* app);
+void presentarEscena(App* app);
+void gestionarEntradas(Partida* p);
+SDL_Texture* cargarTextura(App* app, char* nombre_fichero);
+void dibujarTablero(SDL_Renderer* rend, SDL_Texture* textura, Vector2D pos);
+Vector2D calculoPosicionCasilla(int fila, int columna);
