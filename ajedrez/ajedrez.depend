@@ -1,8 +1,8 @@
 # depslib dependency file v1.0
-1652432256 source:c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\funciones.c
+1653337798 source:c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\funciones.c
 	"funciones.h"
 
-1652431585 c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\funciones.h
+1653337798 c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\funciones.h
 	<stdio.h>
 	<stdlib.h>
 	<SDL2/SDL.h>
@@ -393,6 +393,6 @@
 	"begin_code.h"
 	"close_code.h"
 
-1652431585 source:c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\main.c
+1653337798 source:c:\users\joshg\desktop\universidad\duplicado copia\universidad\1er año carrera\informatica\twe105_2122-a_la_cuarta_va_la_vencida\ajedrez\main.c
 	"funciones.h"
 

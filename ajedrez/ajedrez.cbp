@@ -13,7 +13,13 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="x86_64-w64-mingw32/include" />
 				</Compiler>
+				<Linker>
+					<Add option="-lmingw32 -lSDL2main -lSDL2 -lSDL2_image" />
+					<Add directory="x86_64-w64-mingw32/lib" />
+					<Add directory="x86_64-w64-mingw32/bin" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/ajedrez" prefix_auto="1" extension_auto="1" />
