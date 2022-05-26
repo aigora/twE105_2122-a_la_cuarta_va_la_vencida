@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
+#include <math.h>
 
 #define SCREEN_WITDH 800
 #define SCREEN_HEIGHT 800
@@ -15,7 +16,7 @@
 #define REESCALADO_TEXTURA_PIEZA_X 10
 #define REESCALADO_TEXTURA_PIEZA_Y 8
 
-#define ESTADO_INICIO_PARTIDA 0
+#define ESTADO_INICIO 0
 #define ESTADO_JUGANDO 1
 #define ESTADO_VICTORIA_JUGADOR_1 2
 #define ESTADO_VICTORIA_JUGADOR_2 3
@@ -23,6 +24,21 @@
 
 #define TURNO_JUGADOR_1 1
 #define TURNO_JUGADOR_2 2
+
+#define VERTICAL 0
+#define HORIZONTAL 1
+#define DIAGONAL 2
+#define FORMA_DE_L 3
+#define NO_PERMITIDO 4
+
+#define ARRIBA 0
+#define ABAJO 1
+#define DERECHA 2
+#define IZQUIERDA 3
+
+#define UNA_CASILLA 1
+#define DOS_CASILLAS 2
+#define MAS_DE_DOS_CASILLAS 3
 
 typedef struct
 {
@@ -32,9 +48,19 @@ typedef struct
 
 typedef struct
 {
+    int direccion;          //Puede ser vertical, horizontal, diagonal o en forma de L
+    int sentido;            //Hacia arriba o hacia abajo
+    Vector2D casillas;      //Cantidad de casillas que se avanza en cada uno de los ejes
+    int salto;              //1 si hay alguna pieza en el camino y 0 si no la hay
+    _Bool legalidad;        //1 si el movimiento es legal y 0 si no lo es
+} Movimiento;
+
+typedef struct
+{
     char tipo;      //0(vacio), r(rey), d(dama), c(caballo), a(alfil), t(torre), p(peon) | minusculas->doradas, MAYUSCULAS->BLANCAS
     SDL_Texture* textura;
     int en_movimiento;
+    int primer_movimiento; //Flag para que el peón sepa que puede moverse dos casillas la primera vez
 }Pieza;
 
 typedef struct
@@ -74,3 +100,4 @@ typedef struct
 } Partida;
 
 void humanoVShumano(char nombre_1[], char nombre_2[]);
+
