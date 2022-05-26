@@ -1,4 +1,4 @@
-# [Título del trabajo]
+# A la Cuarta va la Vencida
 
 Proyecto de juego de ajedrez en 2d en lenguaje c. 
 
