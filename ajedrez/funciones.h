@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -31,26 +32,23 @@ typedef struct
 
 typedef struct
 {
-    Vector2D pos;
-    char tipo;      //V(vacio), r(rey), d(dama), c(caballo), a(alfil), t(torre), p(peon) | minusculas->doradas, MAYUSCULAS->BLANCAS
+    char tipo;      //0(vacio), r(rey), d(dama), c(caballo), a(alfil), t(torre), p(peon) | minusculas->doradas, MAYUSCULAS->BLANCAS
     SDL_Texture* textura;
     int en_movimiento;
 }Pieza;
 
 typedef struct
 {
-    char nombre[20];
-    int num_piezas;
-    Pieza piezas[N][N];
-    int moviendo_pieza;
-    int soltar_pieza;
-}Jugador;
-
-typedef struct
-{
     Vector2D pos;
     Pieza pieza;
 } Casilla;
+
+typedef struct
+{
+    char nombre[20];
+    int moviendo_pieza;
+    Casilla* casilla_movimiento; //Almacena la pieza que estoy moviendo
+}Jugador;
 
 typedef struct
 {
@@ -76,4 +74,3 @@ typedef struct
 } Partida;
 
 void humanoVShumano(char nombre_1[], char nombre_2[]);
-

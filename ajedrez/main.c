@@ -1,6 +1,5 @@
 #include "funciones.h"
 
-
 int main(int argc, char *argv[])
 {
     _Bool salir = 0;

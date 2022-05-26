@@ -54,13 +54,55 @@ Vector2D calcularCasillaClick(Vector2D pos_mouse, Vector2D tamano_casilla)
     return fila_columna;
 }
 
-_Bool clickPiezaPropia(char tipo_pieza)
-{
 
-    if(tipo_pieza != '0')
+_Bool clickCasillaInicial(char tipo1, char tipo2)
+{
+    if(tipo1 == tipo2) //Mismo tipo = misma casilla final e inicial
         return 1;
     else
         return 0;
+}
+
+
+_Bool clickPiezaPropia(char tipo_pieza, int turno)
+{
+
+    if(tipo_pieza != '0')   //Hay una pieza
+    {
+        if(turno == TURNO_JUGADOR_1)    //Pertence al jugador 1
+        {
+            if(tipo_pieza == 'R' || tipo_pieza == 'D' || tipo_pieza == 'C' ||
+               tipo_pieza == 'T' || tipo_pieza == 'A' || tipo_pieza == 'P')
+            {
+                printf("Pieza propia\n");
+                return 1;
+            }
+            else
+            {
+                printf("Pieza rival\n");
+                return 0;
+            }
+        }
+        else  //Pertenece al jugador 2
+        {
+            if(tipo_pieza == 'r' || tipo_pieza == 'd' || tipo_pieza == 'c' ||
+               tipo_pieza == 't' || tipo_pieza == 'a' || tipo_pieza == 'p')
+            {
+                printf("Pieza propia\n");
+                return 1;
+            }
+            else
+            {
+                printf("Pieza rival\n");
+                return 0;
+            }
+        }
+    }
+    else    //Casilla vacía
+    {
+        printf("Casilla vacia\n");
+        return 0;
+    }
 }
 
 _Bool clickCasillaLibre(char tipo_pieza)
@@ -89,53 +131,50 @@ void cambiarTurno(Partida* p)
     }
 }
 
-void moverPieza(Pieza piezas[][N], Casilla* casilla)
+void moverPieza(Pieza* p_inicial, Pieza* p_final)
 {
-    int fila = 0;
-    int columna = 0;
+        //Realmente no se mueve la pieza, más bien se intercambia el tipo de pieza entre casillas
+    p_inicial->en_movimiento = 0; //Flag para que deje de seguir el ratón
 
-    for(fila = 0; fila < N; fila++)
-    {
-        for(columna = 0; columna < N; columna++)
-        {
-            if(piezas[fila][columna].en_movimiento) //Buscamos la pieza que el jugador está moviendo
-            {
-                //La pieza se mueve a la casilla seleccionada
-                piezas[fila][columna].pos.x = casilla->pos.x;
-                piezas[fila][columna].pos.y = casilla->pos.y;
-                //La pieza deja de moverse
-                piezas[fila][columna].en_movimiento = 0;
-                //Asigno a la casilla el tipo de pieza nuevo
-                casilla->pieza.tipo = piezas[fila][columna].tipo;
-            }
-        }
-    }
-    //printf("\nSe ha  movido la pieza\n");
+    p_final->textura = p_inicial->textura; //Le paso la textura
+    p_final->tipo = p_inicial->tipo; //Le paso "la pieza"
+
+    p_inicial->tipo = '0'; //Vacío la casilla inicial
     //printf("POSICION PIEZA: %i, %i\tPOSICION CASILLA: %i, %i", pos_pieza->x, pos_pieza->y, pos_casilla.x, pos_casilla.y);
 }
 
-void jugarTurno(Jugador* jugador, Tablero* tablero, Vector2D pos_mouse, Vector2D casilla)
+void jugarTurno(Partida* p, int columna_casilla, int fila_casilla)
 {
-    Pieza* pieza = &jugador->piezas[casilla.y][casilla.x];
-    Casilla* cas = &tablero->casillas[casilla.y][casilla.x];
+    Casilla* casilla = &p->tablero.casillas[columna_casilla][fila_casilla]; //pieza que hay en la casilla en el momento del click
+    Jugador* jugador;
 
-    if(jugador->moviendo_pieza == 0 && clickPiezaPropia(pieza->tipo))
+    if(p->turno == TURNO_JUGADOR_1)
+        jugador = &p->jugador_1;
+    else
+        jugador = &p->jugador_2;
+    //printf("Turno del jugador: %s", jugador->nombre);
+
+    if(jugador->moviendo_pieza == 0 && clickPiezaPropia(casilla->pieza.tipo, p->turno))   //No hay piezas en movimiento y se toca una pieza del propio jugador
     {
         printf("\nMoviendo pieza\n");
         jugador->moviendo_pieza = 1;
-        jugador->piezas[casilla.y][casilla.x].en_movimiento = 1;
-        printf("\nPIEZA EN MOVIMIENTO: %i\n", pieza->en_movimiento);
+        casilla->pieza.en_movimiento = 1;
+        jugador->casilla_movimiento = casilla; //Almaceno la dirección de la pieza en movimiento
     }
-
-    else if(jugador->moviendo_pieza == 1 && clickCasillaLibre(pieza->tipo))
+    else if(jugador->moviendo_pieza == 1 && clickCasillaLibre(casilla->pieza.tipo)) //Si hay una pieza en movimiento y se toca una casilla libre
     {
-        moverPieza(jugador->piezas, cas);
+        moverPieza(&jugador->casilla_movimiento->pieza, &casilla->pieza); //La pieza "se mueve"
         jugador->moviendo_pieza = 0;
-        //jugador->soltar_pieza = 1;
+        cambiarTurno(p);
         printf("\nPIEZA MOVIDA\n");
     }
+    else if(jugador->moviendo_pieza == 1 && clickCasillaInicial(jugador->casilla_movimiento->pieza.tipo, casilla->pieza.tipo))
+    {
+        jugador->casilla_movimiento->pieza.en_movimiento = 0;
+        jugador->moviendo_pieza = 0;
+    }
 
-    //PRUEBA
+    /*  //Visualizar estado del tablero
     int fila = 0;
     int columna = 0;
 
@@ -144,37 +183,17 @@ void jugarTurno(Jugador* jugador, Tablero* tablero, Vector2D pos_mouse, Vector2D
     {
         for(columna = 0; columna < N; columna++)
         {
-            printf("%c, ", tablero->casillas[fila][columna].pieza.tipo);
+            printf("%c, ", p->tablero.casillas[columna][fila].pieza.tipo);
         }
         printf("\n");
-    }
-
-    fila = 0;
-    columna = 0;
-
-    printf("\n");
-    for(fila = 0; fila < N; fila++)
-    {
-        for(columna = 0; columna < N; columna++)
-        {
-            printf("%c, ", jugador->piezas[fila][columna].tipo);
-        }
-        printf("\n");
-    }
+    }*/
 }
 
-void gestionarClick(Partida* p, Vector2D pos_mouse, Vector2D casilla)
+void gestionarClick(Partida* p, int columna, int fila)
 {
     if(p->estado == ESTADO_JUGANDO)
     {
-        if(p->turno == TURNO_JUGADOR_1)
-        {
-            jugarTurno(&p->jugador_1, &p->tablero, pos_mouse, casilla);
-        }
-        else if(p->turno == TURNO_JUGADOR_2)
-        {
-            jugarTurno(&p->jugador_2, &p->tablero, pos_mouse, casilla);
-        }
+        jugarTurno(p, columna, fila);
     }
     else
     {
@@ -186,7 +205,7 @@ void gestionarEntradas(Partida* p)
 {
     SDL_Event evento;
     Vector2D pos_mouse;
-    Vector2D casilla;   //fila(x) y columna(y) de la casilla clickada
+    int fila_click, columna_click;
 
     while(SDL_PollEvent(&evento))
     {
@@ -198,16 +217,18 @@ void gestionarEntradas(Partida* p)
         case SDL_MOUSEBUTTONDOWN:
             pos_mouse.x = evento.button.x;
             pos_mouse.y = evento.button.y;
-            casilla.x = calcularCasillaClick(pos_mouse, p->tablero.tamano_casillas).x;
-            casilla.y = calcularCasillaClick(pos_mouse, p->tablero.tamano_casillas).y;
 
-            gestionarClick(p, pos_mouse, casilla);
+            columna_click = calcularCasillaClick(pos_mouse, p->tablero.tamano_casillas).x;
+            fila_click = calcularCasillaClick(pos_mouse, p->tablero.tamano_casillas).y;
+
+            gestionarClick(p, columna_click, fila_click);
             break;
         default:
             break;
         }
     }
 }
+
 
 SDL_Texture* cargarTextura(App* app, char* nombre_fichero)
 {
@@ -230,10 +251,11 @@ void dibujarTablero(SDL_Renderer* rend, SDL_Texture* textura, Vector2D pos)
     SDL_RenderCopy(rend, textura, NULL, &dest);    //Dibuja la textura del tablero con la informacion de rect
 }
 
-void dibujarPiezaEnMovimiento(SDL_Renderer* rend, Pieza pieza)
+
+void dibujarPiezaEnMovimiento(SDL_Renderer* rend, Casilla c)
 {
     int w, h, mouseX, mouseY;
-	SDL_QueryTexture(pieza.textura, NULL, NULL, &w, &h);
+	SDL_QueryTexture(c.pieza.textura, NULL, NULL, &w, &h);
 
 	SDL_GetMouseState(&mouseX, &mouseY);
 	SDL_Rect orig, dest;
@@ -248,26 +270,26 @@ void dibujarPiezaEnMovimiento(SDL_Renderer* rend, Pieza pieza)
 	dest.x = mouseX - dest.w/2;
 	dest.y = mouseY - dest.h/2;
 
-    SDL_RenderCopy(rend, pieza.textura, NULL, &dest);
+    SDL_RenderCopy(rend, c.pieza.textura, NULL, &dest);
 }
 
-void dibujarPieza(SDL_Renderer* rend, Pieza pieza)
+
+void dibujarPieza(SDL_Renderer* rend, Casilla c)
 {
     SDL_Rect orig;  //Tamaño de textura inicial
     SDL_Rect dest;   //Tamaño de textura deseado
-    if(pieza.tipo != '0')
+    if(c.pieza.tipo != '0')
     {
-        if(pieza.en_movimiento == 1)
+        if(c.pieza.en_movimiento == 1)
         {
-            dibujarPiezaEnMovimiento(rend, pieza);
-            printf("Chupadita\n");
+            dibujarPiezaEnMovimiento(rend, c);
         }
         else
         {
-            orig.x = pieza.pos.x;
-            orig.y = pieza.pos.y;
+            orig.x = c.pos.x;
+            orig.y = c.pos.y;
 
-            SDL_QueryTexture(pieza.textura, NULL, NULL, &orig.w, &orig.h); //Devuelve el tamaño original de la textura
+            SDL_QueryTexture(c.pieza.textura, NULL, NULL, &orig.w, &orig.h); //Devuelve el tamaño original de la textura
 
             dest.x = orig.x - orig.w/2 - 5;
             dest.y = orig.y - orig.h/2 - 5;
@@ -276,13 +298,13 @@ void dibujarPieza(SDL_Renderer* rend, Pieza pieza)
             dest.w = orig.w + REESCALADO_TEXTURA_PIEZA_X;
             dest.h = orig.h + REESCALADO_TEXTURA_PIEZA_Y;
 
-            SDL_RenderCopy(rend, pieza.textura, NULL, &dest);
+            SDL_RenderCopy(rend, c.pieza.textura, NULL, &dest);
         }
     }
 }
 
 
-void dibujarPiezas(SDL_Renderer* rend, Pieza piezas_jugador_1[][N], Pieza piezas_jugador_2[][N])
+void dibujarPiezas(SDL_Renderer* rend, Casilla casillas[][N])
 {
     int fila = 0;
     int columna = 0;
@@ -291,17 +313,16 @@ void dibujarPiezas(SDL_Renderer* rend, Pieza piezas_jugador_1[][N], Pieza piezas
     {
         for(columna = 0; columna < N; columna++)
         {
-            dibujarPieza(rend, piezas_jugador_1[fila][columna]);
-            dibujarPieza(rend, piezas_jugador_2[fila][columna]);
+            dibujarPieza(rend, casillas[fila][columna]);
         }
     }
 }
 
 
-void dibujar(SDL_Renderer* rend, Partida* p)
+void dibujar(SDL_Renderer* rend, Tablero tablero)
 {
-    dibujarTablero(rend, p->tablero.textura, p->tablero.pos);
-    dibujarPiezas(rend, p->jugador_1.piezas, p->jugador_2.piezas);
+    dibujarTablero(rend, tablero.textura, tablero.pos);
+    dibujarPiezas(rend, tablero.casillas);
 }
 
 
@@ -316,29 +337,7 @@ Vector2D calculoPosicionCasilla(int fila, int columna) //Calcula la posicion x,y
 
 void inicializarTablero(App* app, Tablero* tablero)
 {
-    tablero->pos.x = 0;
-    tablero->pos.y = 0;
-    tablero->textura = cargarTextura(app, "texturas/tablero.png");
-    tablero->tamano_casillas.x = SCREEN_WITDH / N;
-    tablero->tamano_casillas.y = SCREEN_HEIGHT / N;
-
-    int fila = 0;
-    int columna = 0;
-
-    for(fila = 0; fila < N; fila++)
-    {
-        for(columna = 0; columna < N; columna++)
-        {
-            tablero->casillas[fila][columna].pos.x = calculoPosicionCasilla(fila, columna).x; //Asigno la posicion correspondiente a cada casilla
-            tablero->casillas[fila][columna].pos.y = calculoPosicionCasilla(fila, columna).y; //para cada eje
-            tablero->casillas[fila][columna].pieza.tipo = '0'; //Vacio
-        }
-    }
-}
-
-
-void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero* tablero)
-{
+        //Cargamos las texturas de las piezas doradas
     SDL_Texture* texturas_2[6];
     texturas_2[0] = cargarTextura(app, "texturas/peon_dorado.png");    //Peon dorado
     texturas_2[1] = cargarTextura(app, "texturas/caballo_dorado.png"); //Caballo dorado
@@ -347,6 +346,7 @@ void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero
     texturas_2[4] = cargarTextura(app, "texturas/dama_dorada.png");    //Dama dorada
     texturas_2[5] = cargarTextura(app, "texturas/rey_dorado.png");     //Rey dorado
 
+        //Cargamos las texturas de las piezas blancas
     SDL_Texture* texturas_1[6];
     texturas_1[0] = cargarTextura(app, "texturas/peon_blanco.png");    //Peon blanco
     texturas_1[1] = cargarTextura(app, "texturas/caballo_blanco.png"); //Caballo blanco
@@ -355,11 +355,14 @@ void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero
     texturas_1[4] = cargarTextura(app, "texturas/dama_blanca.png");    //Dama blanca
     texturas_1[5] = cargarTextura(app, "texturas/rey_blanco.png");     //Rey blanco
 
-    jugador_1->moviendo_pieza = 0;
-    jugador_1->soltar_pieza = 0;
-    jugador_2->moviendo_pieza = 0;
-    jugador_2->soltar_pieza = 0;
+        //Cargamos la textura del tablero e inicializamos sus parámetros
+    tablero->pos.x = 0;
+    tablero->pos.y = 0;
+    tablero->textura = cargarTextura(app, "texturas/tablero.png");
+    tablero->tamano_casillas.x = SCREEN_WITDH / N;
+    tablero->tamano_casillas.y = SCREEN_HEIGHT / N;
 
+        //Asignamos la posicion real de cada casilla
     int fila = 0;
     int columna = 0;
 
@@ -367,10 +370,10 @@ void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero
     {
         for(columna = 0; columna < N; columna++)
         {
-            jugador_1->piezas[fila][columna].tipo = '0';
-            jugador_1->piezas[fila][columna].en_movimiento = 0;
-            jugador_2->piezas[fila][columna].tipo = '0';
-            jugador_2->piezas[fila][columna].en_movimiento = 0;
+            tablero->casillas[columna][fila].pos.x = calculoPosicionCasilla(fila, columna).x;
+            tablero->casillas[columna][fila].pos.y = calculoPosicionCasilla(fila, columna).y; //para cada eje
+            tablero->casillas[columna][fila].pieza.en_movimiento = 0; //Al principio de la ninguna pieza se mueve
+            tablero->casillas[columna][fila].pieza.tipo = '0'; //El tablero no tiene piezas todavía
         }
     }
 
@@ -378,95 +381,81 @@ void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero
     columna = 0;
     int num_pieza = 0;
 
-    for(fila = 0; fila < 2; fila++) //Solo quiero rellenar las dos primeras filas
+        //"Colocamos" las piezas doradas
+    for(fila = 0; fila < 2; fila++)
     {
         for(columna = 0; columna < N; columna++)
         {
-            jugador_2->piezas[fila][columna].pos.x = tablero->casillas[fila][columna].pos.x; //Uso la posición de las casillas que previamente he calculado
-            jugador_2->piezas[fila][columna].pos.y = tablero->casillas[fila][columna].pos.y;
             switch(num_pieza)
             {
             case 0:
             case 7:
-                jugador_2->piezas[fila][columna].tipo = 't';
-                jugador_2->piezas[fila][columna].textura = texturas_2[2];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 't';
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[2];
                 break;
             case 1:
             case 6:
-                jugador_2->piezas[fila][columna].tipo = 'c';
-                jugador_2->piezas[fila][columna].textura = texturas_2[1];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'c';
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[1];
                 break;
             case 2:
             case 5:
-                jugador_2->piezas[fila][columna].tipo = 'a';
-                jugador_2->piezas[fila][columna].textura = texturas_2[3];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'a';
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[3];
                 break;
             case 3:
-                jugador_2->piezas[fila][columna].tipo = 'd';
-                jugador_2->piezas[fila][columna].textura = texturas_2[4];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'd';
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[4];
                 break;
             case 4:
-                jugador_2->piezas[fila][columna].tipo = 'r';
-                jugador_2->piezas[fila][columna].textura = texturas_2[5];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'r';
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[5];
                 break;
             default:
-                jugador_2->piezas[fila][columna].tipo = 'p'; //Segunda fila (todo PEONES) es cuando: num_pieza > 7
-                jugador_2->piezas[fila][columna].textura = texturas_2[0];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_2->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'p'; //Segunda fila (todo PEONES) es cuando: num_pieza > 7
+                tablero->casillas[columna][fila].pieza.textura = texturas_2[0];
             }
             num_pieza++; //Cada vez que avanzo hacia la derecha de la matriz incrementa su valor
         }
     }
 
-    fila = 6;       //Ultima fila
-    columna = 0;    //Ultima columna
+    fila = 6;
+    columna = 0;
     num_pieza = 0;
 
-    for(fila = 6; fila < N; fila++) //Solo quiero rellenar las dos ultimas filas
+        //"Colocamos" las piezas blancas
+    for(fila = 6; fila < N; fila++)
     {
         for(columna = 0; columna < N; columna++) //Invierto el sentido para reutilizar el codigo del switch
         {
-            jugador_1->piezas[fila][columna].pos.x = tablero->casillas[fila][columna].pos.x; //Uso la posición de las casillas que previamente he calculado
-            jugador_1->piezas[fila][columna].pos.y = tablero->casillas[fila][columna].pos.y;
             switch(num_pieza)
             {
             case 8:
             case 15:
-                jugador_1->piezas[fila][columna].tipo = 'T';
-                jugador_1->piezas[fila][columna].textura = texturas_1[2];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'T';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[2];
                 break;
             case 9:
             case 14:
-                jugador_1->piezas[fila][columna].tipo = 'C';
-                jugador_1->piezas[fila][columna].textura = texturas_1[1];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'C';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[1];
                 break;
             case 10:
             case 13:
-                jugador_1->piezas[fila][columna].tipo = 'A';
-                jugador_1->piezas[fila][columna].textura = texturas_1[3];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'A';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[3];
                 break;
             case 11:
-                jugador_1->piezas[fila][columna].tipo = 'R';
-                jugador_1->piezas[fila][columna].textura = texturas_1[5];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'R';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[5];
                 break;
             case 12:
-                jugador_1->piezas[fila][columna].tipo = 'D';
-                jugador_1->piezas[fila][columna].textura = texturas_1[4];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'D';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[4];
                 break;
             default:
-                jugador_1->piezas[fila][columna].tipo = 'P';
-                jugador_1->piezas[fila][columna].textura = texturas_1[0];
-                tablero->casillas[fila][columna].pieza.tipo = jugador_1->piezas[fila][columna].tipo;
+                tablero->casillas[columna][fila].pieza.tipo = 'P';
+                tablero->casillas[columna][fila].pieza.textura = texturas_1[0];
             }
             num_pieza++;
         }
@@ -480,46 +469,24 @@ void inicializarPiezas(App* app, Jugador* jugador_1, Jugador* jugador_2, Tablero
     {
         for(columna = 0; columna < N; columna++)
         {
-            printf("%c, ", tablero->casillas[fila][columna].pieza.tipo);
-        }
-        printf("\n");
-    }
-
-    fila = 0;
-    columna = 0;
-
-    printf("\n");
-    for(fila = 0; fila < N; fila++)
-    {
-        for(columna = 0; columna < N; columna++)
-        {
-            printf("%c, ", jugador_1->piezas[fila][columna].tipo);
-        }
-        printf("\n");
-    }
-
-    fila = 0;
-    columna = 0;
-
-    printf("\n");
-    for(fila = 0; fila < N; fila++)
-    {
-        for(columna = 0; columna < N; columna++)
-        {
-            printf("%c, ", jugador_2->piezas[fila][columna].tipo);
+            printf("%c, ", tablero->casillas[columna][fila].pieza.tipo);
         }
         printf("\n");
     }
 }
 
-
-void inicializarPartida(App* app, Partida* p)   //Reinicia la partida
+void inicializarPartida(App* app, Partida* p, char nombre_1[], char nombre_2[])   //Reinicia la partida
 {
     p->estado = ESTADO_INICIO_PARTIDA;
     p->turno = TURNO_JUGADOR_1;
 
-    inicializarTablero(app, &p->tablero);
-    inicializarPiezas(app, &p->jugador_1, &p->jugador_2, &p->tablero);
+    strcpy(p->jugador_1.nombre, nombre_1);
+    strcpy(p->jugador_2.nombre, nombre_2);
+
+    p->jugador_1.moviendo_pieza = 0;
+    p->jugador_2.moviendo_pieza = 0;
+
+    inicializarTablero(app, &p->tablero); //El tablero contiene todas las piezas
 
     p->estado = ESTADO_JUGANDO;
 }
@@ -531,16 +498,16 @@ void humanoVShumano(char nombre_1[], char nombre_2[])
     iniciarSDL(&app);
 
     Partida p;
-    inicializarPartida(&app, &p);
+    inicializarPartida(&app, &p, nombre_1, nombre_2);
 
-    printf("\nEstado de partida: %i\n", p.estado);
+    printf("\n\tHAZ CLICK EN LA VENTANA PARA COMENZAR\n");
 
     do
     {
         prepararEscena(&app);
 
         gestionarEntradas(&p);
-        dibujar(app.renderer, &p);
+        dibujar(app.renderer, p.tablero);
 
         presentarEscena(&app);
 
