@@ -11,32 +11,27 @@ int main(int argc, char *argv[])
 
     while(!salir)
     {
-        printf("*******************AJEDREZ*********************\n\n\tIntroduce tu nombre: \n\t\t");
-
+        printf("*******************AJEDREZ*********************\n\n Introduce tu nombre: ");
         scanf("%s", nombre_1);
 
-        printf("\n\n\tBienvenido, %s! \n\n\tOpciones:\n\t1 - Jugar contra un amigo.\n\t2 - Jugar contra la máquina. \n\t\
-3 - Salir. \n\n\t\t", nombre_1);
+        limpiarPantalla();
 
+        printf("\n Bienvenido, %s! \n\n Opciones disponibles:\n  1 - Jugar contra un amigo.\n  2 - Salir. \n ", nombre_1);
         scanf("%i", &menu);
+
+        limpiarPantalla();
 
         switch(menu)
         {
             case 1:
-                printf("\n\n\tComo se llama tu amigo?\n\t\t");
+                printf("\n Como se llama tu amigo? ");
                 scanf("%s", nombre_2);
                 humanoVShumano(nombre_1, nombre_2);
                 break;
-
             case 2:
-                //humanoVSmaquina(&jugador_1);
-                break;
-
-            case 3:
-                printf("\n\n¡Hasta la proxima!\n\n");
+                printf("\n ¡Hasta la proxima!\n\n");
                 salir = 1;
                 break;
-
             default:
                 break;
         }

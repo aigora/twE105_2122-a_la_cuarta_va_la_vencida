@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef _WIN32
+  #include<windows.h>
+#endif
+
 #define SCREEN_WITDH 800
 #define SCREEN_HEIGHT 800
 
@@ -38,7 +42,7 @@
 
 #define UNA_CASILLA 1
 #define DOS_CASILLAS 2
-#define MAS_DE_DOS_CASILLAS 3
+#define TRES_CASILLAS 3
 
 typedef struct
 {
@@ -50,8 +54,9 @@ typedef struct
 {
     int direccion;          //Puede ser vertical, horizontal, diagonal o en forma de L
     int sentido;            //Hacia arriba o hacia abajo
-    Vector2D casillas;      //Cantidad de casillas que se avanza en cada uno de los ejes
-    int salto;              //1 si hay alguna pieza en el camino y 0 si no la hay
+    Vector2D dif_casillas;      //Cantidad de casillas que se avanza en cada uno de los ejes
+    int obstaculo;          //1 si hay alguna pieza en el camino y 0 si no la hay
+    _Bool forma_de_L;         //1 si el movimiento tiene forma de L Y 0 si no tiene esa forma
     _Bool legalidad;        //1 si el movimiento es legal y 0 si no lo es
 } Movimiento;
 
