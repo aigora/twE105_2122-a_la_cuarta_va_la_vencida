@@ -7,19 +7,22 @@ int main(int argc, char *argv[])
     char nombre_1[20];
     char nombre_2[20];
 
-    int menu;
+    int ganador, menu;
+    int i = 0;
+
+    Jugador j[50];
+
+    FILE* pf;
 
     while(!salir)
     {
-        printf("*******************AJEDREZ*********************\n\n Introduce tu nombre: ");
+        printf("\n*******************AJEDREZ*********************\n\n Introduce tu nombre: ");
         scanf("%s", nombre_1);
 
         limpiarPantalla();
 
         printf("\n Bienvenido, %s! \n\n Opciones disponibles:\n  1 - Jugar contra un amigo.\n  2 - Salir. \n ", nombre_1);
         scanf("%i", &menu);
-
-        limpiarPantalla();
 
         switch(menu)
         {
@@ -36,6 +39,22 @@ int main(int argc, char *argv[])
                 break;
         }
     }
+
+    pf = fopen("Registro_jugadores.txt", "a+");
+    if(pf == NULL)
+	{
+        printf("Error al abrir fichero.\n");
+        return -1;
+    }
+    else
+	{
+        while(feof(pf) == 0)
+        {
+            fprintf(pf,"%s\n", nombre_1);
+            fprintf(pf,"%s\n", nombre_2);
+        }
+    }
+	fclose(pf);
 
     return 0;
 }

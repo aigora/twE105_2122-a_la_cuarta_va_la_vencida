@@ -58,21 +58,31 @@ void presentarEscena(App* app)
 }
 
 
-Vector2D calcularCasillaClick(Vector2D tamano_casilla)
+Vector2D calcularColumnaFila(Vector2D pos)
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY); //Obtengo la posición del puntero
+    Vector2D columna_fila;
 
-    Vector2D fila_columna;
-    fila_columna.y = mouseY / tamano_casilla.y;
-    fila_columna.x = mouseX / tamano_casilla.x;
-    return fila_columna;
+    columna_fila.x = pos.x / BOX_SIZE;
+    columna_fila.y = pos.y / BOX_SIZE;
+
+    return columna_fila;
 }
 
 
-_Bool clickCasillaInicial(char tipo1, char tipo2)
+Vector2D calcularCasillaClick()
 {
-    if(tipo1 == tipo2) //Mismo tipo = misma casilla final e inicial
+    Vector2D mouse;
+    Vector2D columna_fila;
+    SDL_GetMouseState(&mouse.x, &mouse.y); //Obtengo la posición del puntero
+    columna_fila = calcularColumnaFila(mouse);
+
+    return columna_fila;
+}
+
+
+_Bool clickCasillaInicial(Vector2D pos_inicial, Vector2D pos_final)
+{
+    if(pos_inicial.x == pos_final.x && pos_inicial.y == pos_final.y) //Mismo tipo = misma casilla final e inicial
         return 1;
     else
         return 0;
@@ -138,13 +148,13 @@ void cambiarTurno(Partida* p)
     {
         p->turno = TURNO_JUGADOR_2;
         limpiarPantalla();
-        printf("\n\n Turno de: %s ", p->jugador_2.nombre);
+        printf("\n\n Turno de: %s \n", p->jugador_2.nombre);
     }
     else if(p->turno == TURNO_JUGADOR_2)
     {
         p->turno = TURNO_JUGADOR_1;
         limpiarPantalla();
-        printf("\n\n Turno de: %s ", p->jugador_1.nombre);
+        printf("\n\n Turno de: %s \n", p->jugador_1.nombre);
     }
 }
 
@@ -168,16 +178,27 @@ int calcularSentido(int dir, Vector2D desp)
     if(dir == VERTICAL)
     {
         if(desp.y < 0)
-            sentido = ARRIBA;
+            sentido = NORTE;
         else //desp.y < 0
-            sentido = ABAJO;
+            sentido = SUR;
     }
     else if(dir == HORIZONTAL)
     {
         if(desp.x > 0)
-            sentido = DERECHA;
+            sentido = ESTE;
         else
-            sentido = IZQUIERDA;
+            sentido = OESTE;
+    }
+    else if(dir == DIAGONAL)
+    {
+        if(desp.x > 0 && desp.y < 0)
+            sentido = NORESTE;
+        else if(desp.x > 0 && desp.y > 0)
+            sentido = SURESTE;
+        else if(desp.x < 0 && desp.y > 0)
+            sentido = SUROESTE;
+        else
+            sentido = NOROESTE;
     }
 
     return sentido;
@@ -214,35 +235,150 @@ _Bool calcularMovimientoEnL(Vector2D desp)
 }
 
 
+_Bool calcularObstaculo(Casilla c[][N], Casilla c_origen, Casilla c_destino, Movimiento m)
+{
+    _Bool obs = 0;
+    int columna = calcularColumnaFila(c_origen.pos).x;  //Columna de la posicion de partida
+    int fila = calcularColumnaFila(c_origen.pos).y;     //Fila de la posición de partida
+    int i = 1;
+
+    if(m.direccion == VERTICAL)
+    {
+        if(m.sentido == NORTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.y); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna][fila - i].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+        else if(m.sentido == SUR)
+        {
+            for(i = 1; i < abs(m.dif_casillas.y); i++)
+            {
+                if(c[columna][fila + i].pieza.tipo != '0')
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+    }
+    else if(m.direccion == HORIZONTAL)
+    {
+        if(m.sentido == ESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna + i][fila].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+        else if(m.sentido == OESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna - i][fila].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+    }
+    else if(m.direccion == DIAGONAL)
+    {
+        if(m.sentido == NORESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna + i][fila - i].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+        else if(m.sentido == SURESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna + i][fila + i].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+        else if(m.sentido == SUROESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna - i][fila + i].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+        else if(m.sentido == NOROESTE)
+        {
+            for(i = 1; i < abs(m.dif_casillas.x); i++) //Comprueba solo las casillas intermedias
+            {
+                if(c[columna - i][fila - i].pieza.tipo != '0') //Empieza comprobando la casilla contigua
+                {
+                    obs = 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    return obs;
+}
+
+
 Vector2D calcularDesplazamiento(Vector2D origen, Vector2D destino)
 {
     Vector2D desplazamiento;
-    int tamano_casilla = SCREEN_WITDH / N;
 
-    desplazamiento.x = (destino.x - origen.x) / tamano_casilla;
-    desplazamiento.y = (destino.y - origen.y) / tamano_casilla;
+    desplazamiento.x = (destino.x - origen.x) / BOX_SIZE;
+    desplazamiento.y = (destino.y - origen.y) / BOX_SIZE;
 
     return desplazamiento;
 }
 
 
-int calcularMovimientoLegal(Casilla c[][N], Casilla c_origen, Casilla c_destino)
+_Bool calcularMovimientoLegal(Casilla c[][N], Casilla c_origen, Casilla c_destino, int pieza_destino)
 {
     Movimiento m;
-    m.dif_casillas.x = calcularDesplazamiento(c_origen.pos, c_destino.pos).x; //Numero de casillas que se desplaza la pieza
-    m.dif_casillas.y = calcularDesplazamiento(c_origen.pos, c_destino.pos).y;
+    m.dif_casillas = calcularDesplazamiento(c_origen.pos, c_destino.pos); //Numero de casillas que se desplaza la pieza
     m.direccion = calcularDireccion(m.dif_casillas);
     m.sentido = calcularSentido(m.direccion, m.dif_casillas);
     m.forma_de_L = calcularMovimientoEnL(m.dif_casillas);
-    //m.obstaculo = calcularObstáculo(c, c_origen, c_destino);
+    m.obstaculo = calcularObstaculo(c, c_origen, c_destino, m);
+    m.legalidad = 1;
 
     if(c_origen.pieza.tipo == 'P')
     {
-        if(m.direccion == VERTICAL && m.sentido == ARRIBA)
+        if(m.direccion == VERTICAL && m.sentido == NORTE)
         {
-            if(c_origen.pieza.primer_movimiento == 1 && abs(m.dif_casillas.y) < TRES_CASILLAS)
+            if(c_origen.pieza.primer_movimiento == 1 && abs(m.dif_casillas.y) < TRES_CASILLAS && c_destino.pieza.tipo == '0' && m.obstaculo == 0 && pieza_destino != 1)
                 m.legalidad = 1;
-            else if(c_origen.pieza.primer_movimiento == 0 && abs(m.dif_casillas.y) == UNA_CASILLA)
+            else if(c_origen.pieza.primer_movimiento == 0 && abs(m.dif_casillas.y) == UNA_CASILLA && c_destino.pieza.tipo == '0' && pieza_destino != 1)
+                m.legalidad = 1;
+            else
+                m.legalidad = 0;
+        }
+        else if(m.direccion == DIAGONAL && (m.sentido == NORESTE || m.sentido == NOROESTE))
+        {
+            if(abs(m.dif_casillas.y) == UNA_CASILLA && pieza_destino == 2)
                 m.legalidad = 1;
             else
                 m.legalidad = 0;
@@ -252,11 +388,18 @@ int calcularMovimientoLegal(Casilla c[][N], Casilla c_origen, Casilla c_destino)
     }
     else if(c_origen.pieza.tipo == 'p')
     {
-        if(m.direccion == VERTICAL && m.sentido == ABAJO)
+        if(m.direccion == VERTICAL && m.sentido == SUR)
         {
-            if(c_origen.pieza.primer_movimiento == 1 && abs(m.dif_casillas.y) < TRES_CASILLAS)
+            if(c_origen.pieza.primer_movimiento == 1 && abs(m.dif_casillas.y) < TRES_CASILLAS && c_destino.pieza.tipo == '0' && m.obstaculo == 0 && pieza_destino != 1)
                 m.legalidad = 1;
-            else if(c_origen.pieza.primer_movimiento == 0 && abs(m.dif_casillas.y) == UNA_CASILLA)
+            else if(c_origen.pieza.primer_movimiento == 0 && abs(m.dif_casillas.y) == UNA_CASILLA && c_destino.pieza.tipo == '0' && pieza_destino != 1)
+                m.legalidad = 1;
+            else
+                m.legalidad = 0;
+        }
+        else if(m.direccion == DIAGONAL && (m.sentido == SURESTE || m.sentido == SUROESTE))
+        {
+            if(abs(m.dif_casillas.y) == UNA_CASILLA && pieza_destino == 2)
                 m.legalidad = 1;
             else
                 m.legalidad = 0;
@@ -266,16 +409,14 @@ int calcularMovimientoLegal(Casilla c[][N], Casilla c_origen, Casilla c_destino)
     }
     else if(c_origen.pieza.tipo == 'T' || c_origen.pieza.tipo == 't')
     {
-        if(m.direccion == VERTICAL || m.direccion == HORIZONTAL)
-        {
+        if((m.direccion == VERTICAL || m.direccion == HORIZONTAL) && m.obstaculo == 0 && pieza_destino != 1)
             m.legalidad = 1;
-        }
         else
             m.legalidad = 0;
     }
     else if(c_origen.pieza.tipo == 'C' || c_origen.pieza.tipo == 'c')
     {
-        if(m.forma_de_L == 1)
+        if(m.forma_de_L == 1 && pieza_destino != 1)
             m.legalidad = 1;
         else
             m.legalidad = 0;
@@ -283,79 +424,105 @@ int calcularMovimientoLegal(Casilla c[][N], Casilla c_origen, Casilla c_destino)
 
     else if(c_origen.pieza.tipo == 'A' || c_origen.pieza.tipo == 'a')
     {
-        if(m.direccion == DIAGONAL)
+        if(m.direccion == DIAGONAL && m.obstaculo == 0 && pieza_destino != 1)
             m.legalidad = 1;
         else
             m.legalidad = 0;
     }
     else if(c_origen.pieza.tipo == 'D' || c_origen.pieza.tipo == 'd')
     {
-        if(m.direccion == DIAGONAL || m.direccion == HORIZONTAL || m.direccion == VERTICAL)
+        if((m.direccion == DIAGONAL || m.direccion == HORIZONTAL || m.direccion == VERTICAL) && m.obstaculo == 0 && pieza_destino != 1)
             m.legalidad = 1;
         else
             m.legalidad = 0;
     }
     else if(c_origen.pieza.tipo == 'R' || c_origen.pieza.tipo == 'r')
     {
-        if((m.direccion == DIAGONAL || m.direccion == HORIZONTAL || m.direccion == VERTICAL) &&
-           (abs(m.dif_casillas.y) < DOS_CASILLAS && abs(m.dif_casillas.x) < DOS_CASILLAS))
-        {
+        if((m.direccion == DIAGONAL || m.direccion == HORIZONTAL || m.direccion == VERTICAL) && (abs(m.dif_casillas.y) < DOS_CASILLAS && abs(m.dif_casillas.x) < DOS_CASILLAS) && pieza_destino != 1)
             m.legalidad = 1;
-        }
         else
             m.legalidad = 0;
     }
+    else
+        m.legalidad = 0;
 
     if(m.legalidad == 0)
-        printf("\n Ese movimiento no está permitido!");
+        printf("\n Movimiento no permitido!");
 
     return m.legalidad;
 }
 
 
-void jugarTurno(Partida* p, int columna_casilla, int fila_casilla)
+void jugarTurno(Partida* p, int columna, int fila)
 {
-    Casilla* casilla_click = &p->tablero.casillas[columna_casilla][fila_casilla]; //pieza que hay en la casilla en el momento del click
+    Casilla* casilla_click = &p->tablero.casillas[columna][fila]; //pieza que hay en la casilla en el momento del click
     Jugador* jugador;
+    _Bool click_casilla_inicial;
+    _Bool movimiento_legal;
+    _Bool fin_partida = 0;
 
     if(p->turno == TURNO_JUGADOR_1)
         jugador = &p->jugador_1;
     else
         jugador = &p->jugador_2;
 
-    int movimiento_legal = calcularMovimientoLegal(p->tablero.casillas, *jugador->casilla_movimiento, *casilla_click);
     int click_pieza = clickPieza(casilla_click->pieza.tipo, p->turno); //0 no hay, 1 es propia, 2 es del rival
-    int click_casilla_inicial = clickCasillaInicial(jugador->casilla_movimiento->pieza.tipo, casilla_click->pieza.tipo);
 
-        //No hay piezas en movimiento y se toca una pieza del propio jugador
-    if(jugador->moviendo_pieza == 0 && click_pieza == 1)   //No hay piezas en movimiento y se toca una pieza del propio jugador
+    if(jugador->moviendo_pieza == 1)
+    {
+        movimiento_legal = calcularMovimientoLegal(p->tablero.casillas, *jugador->casilla_movimiento, *casilla_click, click_pieza);
+        click_casilla_inicial = clickCasillaInicial(jugador->casilla_movimiento->pos, casilla_click->pos);
+    }
+
+    if(jugador->moviendo_pieza == 0 && click_pieza == 1)    //No hay piezas en movimiento y se toca una pieza del propio jugador
     {
         jugador->moviendo_pieza = 1;
         casilla_click->pieza.en_movimiento = 1;
-        jugador->casilla_movimiento = casilla_click; //Almaceno la dirección de la pieza en movimiento
+        jugador->casilla_movimiento = casilla_click;    //Almaceno la dirección de la pieza en movimiento
     }
-        //Se suelta la pieza en la casilla inicial del movimiento
+                                                                    //Se suelta la pieza en la casilla inicial del movimiento
     else if(jugador->moviendo_pieza == 1 && click_casilla_inicial)
     {
         jugador->casilla_movimiento->pieza.en_movimiento = 0;
         jugador->moviendo_pieza = 0;
     }
-        //Se suelta la pieza y el movimiento realizado es legal
-    else if(jugador->moviendo_pieza == 1 && movimiento_legal) //Si hay una pieza en movimiento y se toca una casilla libre
+                                                                    //Se suelta la pieza y el movimiento realizado es legal
+    else if(jugador->moviendo_pieza == 1 && movimiento_legal == 1)  //Si hay una pieza en movimiento y se toca una casilla libre
     {
         if(jugador->casilla_movimiento->pieza.tipo == 'P' || jugador->casilla_movimiento->pieza.tipo == 'p')
             jugador->casilla_movimiento->pieza.primer_movimiento = 0;
 
+        if(casilla_click->pieza.tipo == 'R')
+        {
+            p->estado = ESTADO_VICTORIA_JUGADOR_1;
+            fin_partida = 1;
+        }
+        else if(casilla_click->pieza.tipo == 'r')
+        {
+            p->estado = ESTADO_VICTORIA_JUGADOR_2;
+            fin_partida = 1;
+        }
+
         moverPieza(&jugador->casilla_movimiento->pieza, &casilla_click->pieza); //La pieza "se mueve"
         jugador->moviendo_pieza = 0;
-        printf("\n\n\nHOLA");
-        cambiarTurno(p);
+
+        if(fin_partida == 0)
+            cambiarTurno(p);
     }
+}
+
+
+void victoria(Jugador* j)
+{
+    limpiarPantalla();
+    printf("\n\n Enhorabuena %s, has ganado la partida!  \n\n", j->nombre);
 }
 
 
 void gestionarClick(Partida* p, int columna, int fila)
 {
+    char c = '0';
+
     if(p->estado == ESTADO_INICIO)
     {
         p->estado = ESTADO_JUGANDO;
@@ -364,13 +531,23 @@ void gestionarClick(Partida* p, int columna, int fila)
     }
 
     if(p->estado == ESTADO_JUGANDO)
-    {
         jugarTurno(p, columna, fila);
-    }
-    else
+
+    if(p->estado == ESTADO_VICTORIA_JUGADOR_1)
     {
-        //reiniciarPartida(p);
+        victoria(&p->jugador_1);
+        p->ganador = JUGADOR_1;
+        SDL_Delay(3000);
     }
+    else if(p->estado == ESTADO_VICTORIA_JUGADOR_2)
+    {
+        victoria(&p->jugador_2);
+        p->ganador = JUGADOR_2;
+        SDL_Delay(3000);
+    }
+
+    if(p->estado == ESTADO_VICTORIA_JUGADOR_1 || p->estado == ESTADO_VICTORIA_JUGADOR_2)
+        p->estado = ESTADO_SALIR;
 }
 
 
@@ -387,8 +564,8 @@ void gestionarEntradas(Partida* p)
             p->estado = ESTADO_SALIR;
             break;
         case SDL_MOUSEBUTTONDOWN:
-            columna_click = calcularCasillaClick(p->tablero.tamano_casillas).x; //Columna y fila de la casilla donde tiene lugar el click
-            fila_click = calcularCasillaClick(p->tablero.tamano_casillas).y;
+            columna_click = calcularCasillaClick().x; //Columna y fila de la casilla donde tiene lugar el click
+            fila_click = calcularCasillaClick().y;
             gestionarClick(p, columna_click, fila_click);
             break;
         default:
@@ -445,7 +622,7 @@ void dibujarPiezaEnMovimiento(SDL_Renderer* rend, Casilla c)
 void dibujarPieza(SDL_Renderer* rend, Casilla c)
 {
     SDL_Rect orig;  //Tamaño de textura inicial
-    SDL_Rect dest;   //Tamaño de textura deseado
+    SDL_Rect dest;  //Tamaño de textura deseado
     if(c.pieza.tipo != '0')
     {
         if(c.pieza.en_movimiento == 1)
@@ -527,8 +704,6 @@ void inicializarTablero(App* app, Tablero* tablero)
     tablero->pos.x = 0;
     tablero->pos.y = 0;
     tablero->textura = cargarTextura(app, "texturas/tablero.png");
-    tablero->tamano_casillas.x = SCREEN_WITDH / N;
-    tablero->tamano_casillas.y = SCREEN_HEIGHT / N;
 
         //Asignamos la posicion real de cada casilla
     int fila = 0;
@@ -638,6 +813,7 @@ void inicializarPartida(App* app, Partida* p, char nombre_1[], char nombre_2[]) 
 {
     p->estado = ESTADO_INICIO;
     p->turno = TURNO_JUGADOR_1;
+    p->ganador = 0;
 
     strcpy(p->jugador_1.nombre, nombre_1);
     strcpy(p->jugador_2.nombre, nombre_2);
@@ -649,27 +825,31 @@ void inicializarPartida(App* app, Partida* p, char nombre_1[], char nombre_2[]) 
 }
 
 
+void inicializar(App* app, Partida* p, char nombre_1[], char nombre_2[])
+{
+    inicializarPartida(app, p, nombre_1, nombre_2);
+    limpiarPantalla();
+    printf("\n\n Haz click en la ventana para empezar la partida.\n");
+}
+
+
 void humanoVShumano(char nombre_1[], char nombre_2[])
 {
     App app;
     iniciarSDL(&app);
 
     Partida p;
-    inicializarPartida(&app, &p, nombre_1, nombre_2);
-
-    limpiarPantalla();
-
-    printf("\n\n\tHaz click en la ventana para empezar la partida.\n");
+    inicializar(&app, &p, nombre_1, nombre_2);
 
     do
     {
-        prepararEscena(&app);
+        if(p.estado == ESTADO_REINICIO)
+            inicializar(&app, &p, nombre_1, nombre_2);
 
+        prepararEscena(&app);
         gestionarEntradas(&p);
         dibujar(app.renderer, p.tablero);
-
         presentarEscena(&app);
-
         SDL_Delay(16);
     }
     while(p.estado != ESTADO_SALIR);
